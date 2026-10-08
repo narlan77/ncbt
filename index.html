@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal CBT Ujian Online</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #f4f6f9; min-height: 100vh; display: flex; flex-direction: column; }
+    .main-hero { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px 0; border-radius: 0 0 24px 24px; margin-bottom: 25px; }
+    .card-access { border: none; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transition: transform 0.2s ease; }
+    .card-access:hover { transform: translateY(-4px); }
+    
+    /* Style Slide Show CBT */
+    .cbt-carousel { border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+    .cbt-carousel .carousel-item { height: 380px; }
+    .cbt-carousel img { object-fit: cover; height: 100%; filter: brightness(0.75); }
+    .carousel-caption-custom { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(4px); border-radius: 12px; padding: 15px 25px; }
+
+    /* Style Running Text (Ticker) Motivasi */
+    .ticker-wrap { background: #0f172a; color: #f8fafc; padding: 10px 0; font-size: 0.95rem; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2); }
+    .ticker-title { background: #2563eb; color: #fff; font-weight: 700; padding: 4px 12px; border-radius: 6px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    marquee { vertical-align: middle; }
+  </style>
+  <script src="config.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#"><i class="fa-solid fa-graduation-cap me-2"></i>CBT Online</a>
+    </div>
+  </nav>
+
+  <!-- RUNNING TEXT / TICKER MOTIVASI -->
+  <div class="ticker-wrap">
+    <div class="container d-flex align-items-center">
+      <div class="me-3 d-none d-md-block flex-shrink-0">
+        <span class="ticker-title whitespace-nowrap" style="white-space: nowrap;"><i class="fa-solid fa-bullhorn me-1"></i> MOTIVASI HARI INI :</span>
+      </div>
+      <div class="flex-grow-1 overflow-hidden">
+        <marquee behavior="scroll" direction="left" scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();">
+          <i class="fa-solid fa-quote-left text-warning me-1"></i> Jujur adalah kunci utama kehormatan. Kerjakan ujian dengan penuh percaya diri dan kemampuan terbaikmu! &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+          <i class="fa-solid fa-star text-warning me-1"></i> Masa depan adalah milik mereka yang mempersiapkan hari ini. Tetap fokus dan teliti saat menjawab soal! &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+          <i class="fa-solid fa-lightbulb text-warning me-1"></i> Keberhasilan bukanlah kebetulan, melainkan hasil dari kerja keras, ketekunan, dan rasa cinta pada apa yang sedang kamu pelajari.
+        </marquee>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO SECTION WITH CAROUSEL SLIDE SHOW -->
+  <div class="main-hero">
+    <div class="container">
+      <div class="row align-items-center g-4">
+        
+        <!-- TEKS SAMBUTAN (KIRI) -->
+        <div class="col-lg-5 text-center text-lg-start">
+          <span class="badge bg-light text-primary fw-bold mb-2 px-3 py-2 rounded-pill"><i class="fa-solid fa-laptop-code me-1"></i> Computer Based Test</span>
+          <h1 class="display-6 fw-bold mb-3">Selamat Datang di Portal Ujian Online</h1>
+          <p class="lead opacity-90 mb-4" style="font-size: 1.05rem;">Sistem pelaksanaan ujian berbasis komputer yang efisien, transparan, dan terintegrasi untuk mendukung proses penilaian modern.</p>
+          <div class="d-flex justify-content-center justify-content-lg-start gap-2">
+            <button class="btn btn-warning fw-bold text-dark px-4 py-2" onclick="bukaModalSiswa()">
+              <i class="fa-solid fa-user-graduate me-2"></i>Ruang Siswa
+            </button>
+            <button class="btn btn-outline-light fw-bold px-4 py-2" onclick="bukaModalGuru()">
+              <i class="fa-solid fa-user-shield me-2"></i>Panel Guru
+            </button>
+          </div>
+        </div>
+
+        <!-- CAROUSEL SLIDE SHOW (KANAN) -->
+        <div class="col-lg-7">
+          <div id="cbtCarousel" class="carousel slide cbt-carousel" data-bs-ride="carousel" data-bs-interval="4000">
+            <div class="carousel-indicators">
+              <button type="button" data-bs-target="#cbtCarousel" data-bs-slide-to="0" class="active"></button>
+              <button type="button" data-bs-target="#cbtCarousel" data-bs-slide-to="1"></button>
+              <button type="button" data-bs-target="#cbtCarousel" data-bs-slide-to="2"></button>
+            </div>
+            
+            <div class="carousel-inner">
+              <!-- Slide 1 -->
+              <div class="carousel-item active">
+                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop" class="d-block w-100" alt="Ujian Digital">
+                <div class="carousel-caption carousel-caption-custom d-none d-md-block text-start">
+                  <h5 class="fw-bold mb-1"><i class="fa-solid fa-desktop text-info me-2"></i>Pelaksanaan Ujian Digital</h5>
+                  <p class="small mb-0">Pengerjaan soal ujian secara online yang praktis, responsif, dan mudah diakses dari berbagai perangkat.</p>
+                </div>
+              </div>
+
+              <!-- Slide 2 -->
+              <div class="carousel-item">
+                <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1200&auto=format&fit=crop" class="d-block w-100" alt="Fokus & Jujur">
+                <div class="carousel-caption carousel-caption-custom d-none d-md-block text-start">
+                  <h5 class="fw-bold mb-1"><i class="fa-solid fa-shield-halved text-warning me-2"></i>Integritas & Kejujuran</h5>
+                  <p class="small mb-0">Mengutamakan nilai kedisiplinan dan kejujuran untuk mencetak generasi penerus bangsa yang unggul.</p>
+                </div>
+              </div>
+
+              <!-- Slide 3 -->
+              <div class="carousel-item">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1200&auto=format&fit=crop" class="d-block w-100" alt="Analisis Nilai">
+                <div class="carousel-caption carousel-caption-custom d-none d-md-block text-start">
+                  <h5 class="fw-bold mb-1"><i class="fa-solid fa-chart-line text-success me-2"></i>Koreksi & Analisis Otomatis</h5>
+                  <p class="small mb-0">Perhitungan skor Objektif (PG) secara realtime dan rekapitulasi data hasil ujian yang akurat.</p>
+                </div>
+              </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#cbtCarousel" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#cbtCarousel" data-bs-slide="next">
+              <span class="carousel-control-next-icon"></span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER UTAMA - DUA KARTU LOGIN -->
+  <div class="container flex-grow-1">
+    <div class="row justify-content-center g-4">
+      
+      <!-- KARTU 1: PANEL SISWA -->
+      <div class="col-md-5">
+        <div class="card card-access h-100 p-4 bg-white text-center">
+          <div class="mb-3 display-4 text-primary"><i class="fa-solid fa-user-graduate"></i></div>
+          <h3 class="fw-bold mb-2">Portal Siswa</h3>
+          <p class="text-muted mb-4">Masuk ke akun siswa untuk mengerjakan ujian dan melihat riwayat nilai.</p>
+          <button class="btn btn-primary btn-lg fw-bold w-100 mt-auto" onclick="bukaModalSiswa()">
+            <i class="fa-solid fa-right-to-bracket me-2"></i> Login Siswa
+          </button>
+        </div>
+      </div>
+
+      <!-- KARTU 2: PANEL GURU / ADMIN -->
+      <div class="col-md-5">
+        <div class="card card-access h-100 p-4 bg-white text-center">
+          <div class="mb-3 display-4 text-warning"><i class="fa-solid fa-chalkboard-user"></i></div>
+          <h3 class="fw-bold mb-2">Panel Guru & Admin</h3>
+          <p class="text-muted mb-4">Kelola bank soal, pengaturan durasi, rekap nilai, dan analisis hasil ujian.</p>
+          <button class="btn btn-outline-primary btn-lg fw-bold w-100 mt-auto" onclick="bukaModalGuru()">
+            <i class="fa-solid fa-user-shield me-2"></i> Login Guru / Admin
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="text-center py-4 text-muted border-top mt-5 bg-white">
+    <div class="container"><small>&copy; 2026 Portal Ujian Online. All rights reserved.</small></div>
+  </footer>
+
+  <!-- MODAL 1: LOGIN SISWA -->
+  <div class="modal fade" id="modalLoginSiswa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-graduate me-2"></i>Login Akun Siswa</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="formLoginSiswaIndex" onsubmit="prosesLoginSiswa(event)">
+            <div class="mb-3">
+              <label class="form-label fw-bold small">NIS / NO. PESERTA</label>
+              <input type="text" id="siswaNis" class="form-control" placeholder="Masukkan NIS / Username" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold small">PASSWORD</label>
+              <input type="password" id="siswaPass" class="form-control" placeholder="Masukkan Password" required>
+            </div>
+            <div id="msgErrorSiswa" class="alert alert-danger d-none my-2"></div>
+            <button type="submit" id="btnSubmitSiswa" class="btn btn-primary w-100 fw-bold py-2 mt-2">
+              Masuk ke Ruang Siswa
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: LOGIN GURU -->
+  <div class="modal fade" id="modalLoginGuru" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-dark text-white">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-chalkboard-user me-2"></i>Login Panel Pengajar</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="formLoginGuruIndex" onsubmit="prosesLoginGuru(event)">
+            <div class="mb-3">
+              <label class="form-label fw-bold small">USERNAME / NIP</label>
+              <input type="text" id="guruUser" class="form-control" placeholder="Masukkan Username / NIP" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold small">PASSWORD</label>
+              <input type="password" id="guruPass" class="form-control" placeholder="Masukkan Password" required>
+            </div>
+            <div id="msgErrorGuru" class="alert alert-danger d-none my-2"></div>
+            <button type="submit" id="btnSubmitGuru" class="btn btn-dark w-100 fw-bold py-2 mt-2">
+              Masuk ke Panel Guru
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let modalSiswaObj, modalGuruObj;
+
+    // Helper untuk menentukan URL API target (prioritas: window.API_URL > relatif /api)
+    function getApiEndpoint() {
+      if (typeof window.API_URL !== "undefined" && window.API_URL && window.API_URL.trim() !== "") {
+        return window.API_URL;
+      }
+      return "/api";
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      modalSiswaObj = new bootstrap.Modal(document.getElementById('modalLoginSiswa'));
+      modalGuruObj = new bootstrap.Modal(document.getElementById('modalLoginGuru'));
+    });
+
+    function bukaModalSiswa() { modalSiswaObj.show(); }
+    function bukaModalGuru() { modalGuruObj.show(); }
+
+    // 1. PROCESS LOGIN SISWA
+    async function prosesLoginSiswa(e) {
+      if (e) e.preventDefault();
+      
+      const elUser = document.getElementById("siswaNis");
+      const elPass = document.getElementById("siswaPass");
+      const errBox = document.getElementById("msgErrorSiswa");
+      const btn = document.getElementById("btnSubmitSiswa");
+
+      if (!elUser || !elPass) return;
+
+      const u = elUser.value.trim();
+      const p = elPass.value.trim();
+
+      errBox.classList.add("d-none");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Memeriksa...`;
+
+      try {
+        const targetUrl = getApiEndpoint();
+        const res = await fetch(targetUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "loginsiswa", username: u, password: p })
+        });
+        
+        const data = await res.json();
+
+        if (data.status === "success" && data.data) {
+          localStorage.setItem("akun_siswa_login", JSON.stringify({
+            nis: data.data.nis,
+            nama: data.data.nama,
+            kelas: data.data.kelas || "Siswa"
+          }));
+          window.location.href = "siswa.html";
+        } else {
+          errBox.innerText = data.message || "NIS / Password Siswa salah!";
+          errBox.classList.remove("d-none");
+        }
+      } catch(ex) {
+        console.error("Login Siswa Error:", ex);
+        errBox.innerText = "Gagal terhubung ke server.";
+        errBox.classList.remove("d-none");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Masuk ke Ruang Siswa";
+      }
+    }
+
+    // 2. PROCESS LOGIN GURU / ADMIN
+    async function prosesLoginGuru(e) {
+      if (e) e.preventDefault();
+
+      const elUser = document.getElementById("guruUser");
+      const elPass = document.getElementById("guruPass");
+      const errBox = document.getElementById("msgErrorGuru");
+      const btn = document.getElementById("btnSubmitGuru");
+
+      if (!elUser || !elPass) {
+        console.error("Elemen input 'guruUser' / 'guruPass' tidak ditemukan!");
+        return;
+      }
+
+      const u = elUser.value.trim();
+      const p = elPass.value.trim();
+
+      if (!u || !p) {
+        if (errBox) {
+          errBox.innerText = "Username dan Password wajib diisi!";
+          errBox.classList.remove("d-none");
+        }
+        return;
+      }
+
+      errBox.classList.add("d-none");
+      btn.disabled = true;
+      btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> Memeriksa...`;
+
+      try {
+        const targetUrl = getApiEndpoint();
+        const res = await fetch(targetUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "loginguru",
+            username: u,
+            password: p
+          })
+        });
+
+        const result = await res.json();
+
+        if (result.status === "success") {
+          const userRole = String(result.role || "").trim();
+
+          // Proteksi: Cegah akun bertipe Siswa masuk via Modal Guru
+          if (userRole.toLowerCase() === "siswa") {
+            errBox.innerText = "Akses ditolak! Akun Siswa tidak diizinkan masuk ke Panel Guru.";
+            errBox.classList.remove("d-none");
+            return;
+          }
+
+          // Simpan Sesi Guru
+          sessionStorage.setItem("isGuruLoggedIn", "true");
+          sessionStorage.setItem("namaGuru", result.nama || "Guru");
+          sessionStorage.setItem("roleGuru", userRole || "Guru");
+          localStorage.setItem("session_guru", JSON.stringify(result));
+
+          // Redirect ke Dashboard Guru
+          window.location.href = "guru.html";
+        } else {
+          errBox.innerText = result.message || "Username / Password Guru salah!";
+          errBox.classList.remove("d-none");
+        }
+      } catch (err) {
+        console.error("Error login guru:", err);
+        errBox.innerText = "Gagal terhubung ke server: " + err.message;
+        errBox.classList.remove("d-none");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Masuk ke Panel Guru";
+      }
+    }
+  </script>
+</body>
+</html>
