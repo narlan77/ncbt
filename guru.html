@@ -1334,20 +1334,43 @@ function toggleSidebar() {
     }
   }
 
-  // ====================================================================
-  // MODUL 3: LAYANAN API & UTILITAS
-  // ====================================================================
-  async function apiPost(payload) {
+// ====================================================================
+// MODUL 3: LAYANAN API & UTILITAS (AMALKAN REDIRECT GITHUB PAGES)
+// ====================================================================
+async function apiPost(payload) {
+  try {
+    const formData = new URLSearchParams();
+    for (const key in payload) {
+      if (payload.hasOwnProperty(key)) {
+        const val = payload[key];
+        if (typeof val === "object" && val !== null) {
+          formData.append(key, JSON.stringify(val));
+        } else {
+          formData.append(key, val !== undefined && val !== null ? val : "");
+        }
+      }
+    }
+
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      redirect: "follow",
+      body: formData.toString()
     });
-    if (!res.ok) {
-      throw new Error("Respon jaringan tidak OK (Status: " + res.status + ")");
+
+    const text = await res.text();
+
+    if (text.trim().startsWith("<")) {
+      console.error("Respons Server HTML:", text);
+      throw new Error("Server mengembalikan halaman HTML. Pastikan akses Google Web App diset ke 'Anyone'.");
     }
-    return await res.json();
+
+    return JSON.parse(text);
+  } catch (err) {
+    console.error("Gagal koneksi API:", err);
+    throw err;
   }
+}
 
 function getKodeSoal() {
   const selectKode = document.getElementById("kodeSoalInput");
@@ -1973,142 +1996,131 @@ function gantiHalamanKodeSoal(page) {
   }
 
   async function tinjauDanCetakSoal(kodeSoal) {
-    if (!kodeSoal || typeof kodeSoal !== "string") {
-      kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
-    }
+  if (!kodeSoal || typeof kodeSoal !== "string") {
+    kodeSoal = typeof getKodeSoal === "function" ? getKodeSoal() : document.getElementById("kodeSoalInput")?.value.trim().toUpperCase();
+  }
 
-    if (!kodeSoal) {
-      alert("Kode soal tidak boleh kosong! Silakan isi atau pilih Kode Soal terlebih dahulu.");
+  if (!kodeSoal) {
+    alert("Kode soal tidak boleh kosong! Silakan isi atau pilih Kode Soal terlebih dahulu.");
+    return;
+  }
+
+  try {
+    // Gunakan apiPost agar aman dari redirect CORS
+    const result = await apiPost({ action: "getSoalByKode", kode_soal: kodeSoal });
+
+    if (result.status !== "success" || !result.data || result.data.length === 0) {
+      alert(result.message || "Data soal tidak ditemukan untuk kode: " + kodeSoal);
       return;
     }
 
-    try {
-      const targetUrl = typeof API_URL !== "undefined" ? API_URL : (typeof SCRIPT_URL !== "undefined" ? SCRIPT_URL : "");
+    const listSoal = result.data;
+    const dataCfg = await apiPost({ action: "getPengaturan", kode: kodeSoal, kode_soal: kodeSoal });
+    
+    const config = (dataCfg.status === "success" && dataCfg.data) 
+      ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
+      : {};
 
-      const response = await fetch(targetUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "getSoalByKode", kode_soal: kodeSoal })
-      });
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Pop-up diblokir oleh browser! Harap izinkan pop-up untuk mencetak.");
+      return;
+    }
 
-      const result = await response.json();
-      if (result.status !== "success" || !result.data || result.data.length === 0) {
-        alert(result.message || "Data soal tidak ditemukan untuk kode: " + kodeSoal);
-        return;
-      }
+    let htmlContent = `
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>Naskah Soal - ${kodeSoal}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; color: #000; line-height: 1.4; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+          .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; }
+          .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+          .meta-table td { padding: 4px; font-size: 14px; }
+          .soal-item { margin-bottom: 15px; page-break-inside: avoid; }
+          .soal-text { font-weight: bold; margin-bottom: 5px; }
+          .opsi-list { list-style-type: none; padding-left: 20px; margin: 5px 0; }
+          .opsi-list li { margin-bottom: 3px; }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+          <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Dokumen</button>
+        </div>
 
-      const listSoal = result.data;
-      const resPengaturan = await fetch(targetUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "getPengaturan", kode: kodeSoal, kode_soal: kodeSoal })
-      });
-      
-      const dataCfg = await resPengaturan.json();
-      const config = (dataCfg.status === "success" && dataCfg.data) 
-        ? (Array.isArray(dataCfg.data) ? dataCfg.data[0] : dataCfg.data) 
-        : {};
+        <div class="header">
+          <h2>NASKAH SOAL UJIAN</h2>
+          <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
+        </div>
 
-      const printWindow = window.open("", "_blank");
-      if (!printWindow) {
-        alert("Pop-up diblokir oleh browser! Harap izinkan pop-up untuk mencetak.");
-        return;
-      }
+        <table class="meta-table">
+          <tr>
+            <td width="15%"><strong>Mata Pelajaran</strong></td>
+            <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
+            <td width="15%"><strong>Kelas/Tingkat</strong></td>
+            <td width="35%">: ${config.kelas || config.daftar_kelas || "-"}</td>
+          </tr>
+          <tr>
+            <td><strong>Kode Soal</strong></td>
+            <td>: ${kodeSoal}</td>
+            <td><strong>Waktu / Durasi</strong></td>
+            <td>: ${config.durasi || 90} Menit</td>
+          </tr>
+        </table>
+        <hr style="border: 1px solid #000; margin-bottom: 20px;">
+        <div class="soal-container">
+    `;
 
-      let htmlContent = `
-        <!DOCTYPE html>
-        <html lang="id">
-        <head>
-          <meta charset="UTF-8">
-          <title>Naskah Soal - ${kodeSoal}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; color: #000; line-height: 1.4; }
-            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-            .header h2, .header h3 { margin: 2px 0; text-transform: uppercase; }
-            .meta-table { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
-            .meta-table td { padding: 4px; font-size: 14px; }
-            .soal-item { margin-bottom: 15px; page-break-inside: avoid; }
-            .soal-text { font-weight: bold; margin-bottom: 5px; }
-            .opsi-list { list-style-type: none; padding-left: 20px; margin: 5px 0; }
-            .opsi-list li { margin-bottom: 3px; }
-            @media print {
-              body { margin: 0; }
-              .no-print { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-            <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; cursor: pointer;">🖨️ Cetak Dokumen</button>
-          </div>
+    listSoal.forEach((item, index) => {
+      const no = item.no_soal || item["No Soal"] || (index + 1);
+      const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
+      const pertanyaan = item.pertanyaan || item["Pertanyaan"] || "";
+      const opA = item.opA || item["Opsi A"] || "";
+      const opB = item.opB || item["Opsi B"] || "";
+      const opC = item.opC || item["Opsi C"] || "";
+      const opD = item.opD || item["Opsi D"] || "";
+      const isPG = tipe === "PG" || tipe === "PILGAN";
 
-          <div class="header">
-            <h2>NASKAH SOAL UJIAN</h2>
-            <h3>${config.jenis_ujian || "PENILAIAN UJIAN"}</h3>
-          </div>
-
-          <table class="meta-table">
-            <tr>
-              <td width="15%"><strong>Mata Pelajaran</strong></td>
-              <td width="35%">: ${config.mata_pelajaran || config.mapel || "-"}</td>
-              <td width="15%"><strong>Kelas/Tingkat</strong></td>
-              <td width="35%">: ${config.kelas || config.daftar_kelas || "-"}</td>
-            </tr>
-            <tr>
-              <td><strong>Kode Soal</strong></td>
-              <td>: ${kodeSoal}</td>
-              <td><strong>Waktu / Durasi</strong></td>
-              <td>: ${config.durasi || 90} Menit</td>
-            </tr>
-          </table>
-          <hr style="border: 1px solid #000; margin-bottom: 20px;">
-          <div class="soal-container">
+      htmlContent += `
+        <div class="soal-item">
+          <div class="soal-text">${no}. ${pertanyaan}</div>
       `;
 
-      listSoal.forEach((item, index) => {
-        const no = item.no_soal || item["No Soal"] || (index + 1);
-        const tipe = String(item.tipe || item["Tipe"] || "PG").trim().toUpperCase();
-        const pertanyaan = item.pertanyaan || item["Pertanyaan"] || "";
-        const opA = item.opA || item["Opsi A"] || "";
-        const opB = item.opB || item["Opsi B"] || "";
-        const opC = item.opC || item["Opsi C"] || "";
-        const opD = item.opD || item["Opsi D"] || "";
-        const isPG = tipe === "PG" || tipe === "PILGAN";
-
+      if (isPG) {
         htmlContent += `
-          <div class="soal-item">
-            <div class="soal-text">${no}. ${pertanyaan}</div>
+          <ul class="opsi-list">
+            ${opA ? `<li>A. ${opA}</li>` : ''}
+            ${opB ? `<li>B. ${opB}</li>` : ''}
+            ${opC ? `<li>C. ${opC}</li>` : ''}
+            ${opD ? `<li>D. ${opD}</li>` : ''}
+          </ul>
         `;
+      }
 
-        if (isPG) {
-          htmlContent += `
-            <ul class="opsi-list">
-              ${opA ? `<li>A. ${opA}</li>` : ''}
-              ${opB ? `<li>B. ${opB}</li>` : ''}
-              ${opC ? `<li>C. ${opC}</li>` : ''}
-              ${opD ? `<li>D. ${opD}</li>` : ''}
-            </ul>
-          `;
-        }
+      htmlContent += `</div>`;
+    });
 
-        htmlContent += `</div>`;
-      });
+    htmlContent += `</div></body></html>`;
 
-      htmlContent += `</div></body></html>`;
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
 
-      printWindow.document.open();
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
-      };
-    } catch (error) {
-      console.error("Gagal mencetak soal:", error);
-      alert("Terjadi kesalahan teknis saat mengambil data naskah soal.");
-    }
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
+  } catch (error) {
+    console.error("Gagal mencetak soal:", error);
+    alert("Terjadi kesalahan teknis saat mengambil data naskah soal.");
   }
+}
 
 // ====================================================================
   // MODUL 6: AI GENERATOR SOAL (GEMINI)
