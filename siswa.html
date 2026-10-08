@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Akun Siswa - Ujian Online</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+    }
+    
+    /* CARD LOGIN SISWA */
+    .card-login-siswa {
+      border: none;
+      border-radius: 20px;
+      background: #ffffff;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+    .login-header-siswa {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      padding: 2.2rem 1.5rem;
+      color: #ffffff;
+    }
+    .login-icon-wrapper {
+      width: 65px;
+      height: 65px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px auto;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* DASHBOARD SISWA */
+    .navbar-siswa {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    }
+    .card-custom {
+      border-radius: 14px;
+      border: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      transition: all 0.2s ease;
+    }
+    .card-ujian-aktif {
+      border-left: 5px solid #0d6efd;
+    }
+    .card-ujian-selesai {
+      border-left: 5px solid #198754;
+    }
+    
+    .badge-status {
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    /* MODAL PREVIEW JAWABAN */
+    .soal-review-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+<!-- STYLE KHUSUS PRINT DAN MODAL DETAIL -->
+    @media print {
+    /* Sembunyikan semua elemen selain area cetak saat mode print */
+    body * {
+      visibility: hidden;
+    }
+    #modalDetailJawaban, #modalDetailJawaban * {
+      visibility: visible;
+    }
+    #modalDetailJawaban {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .modal-footer, .btn-close {
+      display: none !important;
+    }
+    .modal-dialog {
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    .modal-content {
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .modal-body {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+  }
+  </style>
+  <script src="config.js"></script>
+</head>
+<body>
+
+<!-- ================================================================= -->
+<!-- SECTION 1: FORM LOGIN SISWA (TERHUBUNG KE SHEET PENGGUNA) -->
+<!-- ================================================================= -->
+<div id="sectionLogin" class="container py-5">
+  <div class="row justify-content-center my-4">
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-login-siswa">
+        
+        <div class="login-header-siswa text-center">
+          <div class="login-icon-wrapper">
+            <i class="fa-solid fa-user-graduate fa-2x text-white"></i>
+          </div>
+          <h4 class="fw-bold mb-1">Portal Akun Siswa</h4>
+          <p class="mb-0 text-white-50 small">Masuk menggunakan Akun Siswa</p>
+        </div>
+
+        <div class="card-body p-4">
+          <form id="formLoginSiswa" onsubmit="loginSiswa(event)">
+            
+            <div class="mb-3">
+              <label for="inputNisLogin" class="form-label fw-semibold small text-muted">USERNAME / NIS / NO. PESERTA</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light"><i class="fa-solid fa-id-card text-secondary"></i></span>
+                <input type="text" id="inputNisLogin" class="form-control" placeholder="Masukkan Username/NIS" required autocomplete="username" />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="inputPassLogin" class="form-label fw-semibold small text-muted">PASSWORD</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-secondary"></i></span>
+                <input type="password" id="inputPassLogin" class="form-control" placeholder="Masukkan Password" required autocomplete="current-password" />
+              </div>
+            </div>
+
+            <div id="loginAlert" class="alert alert-danger d-none small mb-3" role="alert"></div>
+
+            <button type="submit" id="btnLogin" class="btn btn-primary w-100 py-2 fw-bold">
+              <i class="fa-solid fa-right-to-bracket me-2"></i> Masuk Akun
+            </button>
+          </form>
+
+          <div class="text-center mt-4 pt-2 border-top">
+            <a href="index.html" class="text-decoration-none small text-muted">
+              <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Halaman Utama
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================================================= -->
+<!-- SECTION 2: DASHBOARD UTAMA SISWA -->
+<!-- ================================================================= -->
+<div id="sectionDashboard" class="d-none">
+  
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-siswa sticky-top shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="#">
+        <i class="fa-solid fa-graduation-cap me-2"></i> Ruang Siswa
+      </a>
+      <div class="d-flex align-items-center text-white ms-auto">
+        <div class="me-3 text-end d-none d-md-block">
+          <div class="fw-bold text-uppercase" id="navNamaSiswa">-</div>
+          <small class="text-white-50" id="navInfoSiswa">-</small>
+        </div>
+        <button class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="logoutSiswa()">
+          <i class="fa-solid fa-power-off me-1"></i> Keluar
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT CONTAINER -->
+  <div class="container py-4">
+    
+    <!-- BANNER SELAMAT DATANG -->
+    <div class="card card-custom p-4 bg-white mb-4">
+      <div class="d-flex align-items-center">
+        <div class="me-3 d-none d-sm-block">
+          <div class="bg-primary-subtle text-primary rounded-circle p-3 text-center" style="width: 60px; height: 60px;">
+            <i class="fa-solid fa-user-check fa-2x"></i>
+          </div>
+        </div>
+        <div>
+          <h5 class="fw-bold mb-1">Selamat Datang, <span id="dashNamaSiswa" class="text-primary text-uppercase">-</span>!</h5>
+          <p class="text-muted mb-0 small">
+            No. Peserta: <strong id="dashNisSiswa">-</strong> | Kelas: <strong id="dashKelasSiswa">-</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAV TABS -->
+    <ul class="nav nav-pills mb-4 gap-2" id="siswaTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold rounded-pill px-4" id="tabUjian" data-bs-toggle="pill" data-bs-target="#contentUjian" type="button">
+          <i class="fa-solid fa-file-pen me-2"></i> Ujian Tersedia
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold rounded-pill px-4" id="tabRiwayat" data-bs-toggle="pill" data-bs-target="#contentRiwayat" type="button" onclick="muatRiwayatUjian()">
+          <i class="fa-solid fa-clock-rotate-left me-2"></i> Riwayat & Nilai
+        </button>
+      </li>
+    </ul>
+
+    <!-- TAB CONTENTS -->
+    <div class="tab-content" id="siswaTabsContent">
+      
+      <!-- TAB 1: UJIAN BERLANGSUNG / TERSEDIA -->
+      <div class="tab-pane fade show active" id="contentUjian" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-list-check me-2"></i>Daftar Ujian Aktif (Sesuai Kelas Anda)</h6>
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="muatDaftarUjianAktif()">
+            <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh
+          </button>
+        </div>
+
+        <div id="containerUjianAktif" class="row g-3">
+          <!-- Card Ujian Aktif dimuat dinamis -->
+        </div>
+      </div>
+
+      <!-- TAB 2: RIWAYAT, KARTU NILAI & JAWABAN -->
+      <div class="tab-pane fade" id="contentRiwayat" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-square-poll-vertical me-2"></i>Hasil & Lembar Jawaban</h6>
+          <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="muatRiwayatUjian()">
+            <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh
+          </button>
+        </div>
+
+        <div id="containerRiwayatUjian" class="row g-3">
+          <!-- Card Riwayat Ujian dimuat dinamis -->
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ================================================================= -->
+<!-- MODAL DETAIL JAWABAN SISWA -->
+<!-- ================================================================= -->
+<div class="modal fade" id="modalDetailJawaban" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold" id="modalTitleDetail">
+          <i class="fa-solid fa-file-invoice me-2"></i>Detail Lembar Jawaban
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modalBodyDetailJawaban">
+        <!-- Detail Soal dan Jawaban disuntikkan dinamis -->
+      </div>
+      <div class="modal-footer justify-content-between bg-light">
+        <button type="button" class="btn btn-outline-danger fw-bold rounded-pill" onclick="cetakLembarJawaban()">
+          <i class="fa-solid fa-print me-2"></i>Cetak / Ekspor PDF
+        </button>
+        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let akunSiswa = null;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    cekSesiLoginSiswa();
+  });
+
+  // Helper API URL
+  function getApiUrl() {
+    return (typeof CONFIG !== 'undefined' && CONFIG.API_URL) ? CONFIG.API_URL : (typeof API_URL !== 'undefined' ? API_URL : "");
+  }
+
+  // 1. CEK SESI LOGIN SISWA
+  function cekSesiLoginSiswa() {
+    const saved = localStorage.getItem("akun_siswa_login");
+    if (saved) {
+      try {
+        akunSiswa = JSON.parse(saved);
+        tampilkanDashboard();
+      } catch (e) {
+        logoutSiswa();
+      }
+    } else {
+      document.getElementById("sectionLogin").classList.remove("d-none");
+      document.getElementById("sectionDashboard").classList.add("d-none");
+    }
+  }
+
+  // 2. PROSES LOGIN SISWA VIA SHEET PENGGUNA
+  async function loginSiswa(e) {
+    if (e) e.preventDefault();
+
+    const username = document.getElementById("inputNisLogin").value.trim();
+    const password = document.getElementById("inputPassLogin").value.trim();
+    const alertBox = document.getElementById("loginAlert");
+    const btnSubmit = document.getElementById("btnLogin");
+
+    alertBox.classList.add("d-none");
+
+    if (!username || !password) {
+      alertBox.innerText = "Username/NIS dan Password wajib diisi!";
+      alertBox.classList.remove("d-none");
+      return;
+    }
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Memeriksa Akun...`;
+
+    try {
+      const targetUrl = getApiUrl();
+      const res = await fetch(targetUrl, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "loginsiswa",
+          username: username,
+          password: password
+        })
+      });
+
+      const result = await res.json();
+
+      if (result.status === "success" && result.data) {
+        akunSiswa = {
+          nis: result.data.nis,
+          nama: result.data.nama,
+          kelas: result.data.kelas || "Siswa"
+        };
+
+        localStorage.setItem("akun_siswa_login", JSON.stringify(akunSiswa));
+        tampilkanDashboard();
+      } else {
+        alertBox.innerText = result.message || "Login gagal! Periksa Username dan Password Anda.";
+        alertBox.classList.remove("d-none");
+      }
+    } catch (err) {
+      alertBox.innerText = "Gagal terhubung ke server: " + err.message;
+      alertBox.classList.remove("d-none");
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-right-to-bracket me-2"></i> Masuk Akun`;
+    }
+  }
+
+  // 3. LOGOUT SISWA
+  function logoutSiswa() {
+    localStorage.removeItem("akun_siswa_login");
+    akunSiswa = null;
+    document.getElementById("sectionLogin").classList.remove("d-none");
+    document.getElementById("sectionDashboard").classList.add("d-none");
+    document.getElementById("formLoginSiswa").reset();
+  }
+
+  // 4. TAMPILKAN DASHBOARD SISWA
+  function tampilkanDashboard() {
+    document.getElementById("sectionLogin").classList.add("d-none");
+    document.getElementById("sectionDashboard").classList.remove("d-none");
+
+    document.getElementById("navNamaSiswa").innerText = akunSiswa.nama;
+    document.getElementById("navInfoSiswa").innerText = `${akunSiswa.nis} - ${akunSiswa.kelas}`;
+
+    document.getElementById("dashNamaSiswa").innerText = akunSiswa.nama;
+    document.getElementById("dashNisSiswa").innerText = akunSiswa.nis;
+    document.getElementById("dashKelasSiswa").innerText = akunSiswa.kelas;
+
+    muatDaftarUjianAktif();
+  }
+
+  // 5. MUAT DAFTAR KARTU UJIAN AKTIF (DIFILTER DENGAN KELAS SISWA)
+  async function muatDaftarUjianAktif() {
+    const container = document.getElementById("containerUjianAktif");
+    container.innerHTML = `
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted small">Memuat daftar ujian aktif sesuai kelas Anda...</p>
+      </div>
+    `;
+
+    const targetUrl = getApiUrl();
+    if (!targetUrl) {
+      container.innerHTML = `<div class="col-12"><div class="alert alert-danger">API_URL tidak ditemukan di config.js!</div></div>`;
+      return;
+    }
+
+    try {
+      const [resKodeRaw, resCekRaw] = await Promise.all([
+        fetch(targetUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "getdaftarkode" }) // Ambil daftar kode beserta metadata (kelas & status)
+        }),
+        fetch(targetUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "cekSoalSiswa", no_peserta: akunSiswa.nis })
+        })
+      ]);
+
+      const resKode = await resKodeRaw.json();
+      const resCek = await resCekRaw.json();
+
+      if (resKode.status !== "success" || !Array.isArray(resKode.data) || resKode.data.length === 0) {
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="card card-custom p-4 text-center text-muted">
+              <i class="fa-solid fa-folder-open fa-3x mb-3"></i>
+              <h6>Tidak Ada Ujian Aktif Saat Ini</h6>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const semuaSoalObj = resKode.data; // Mengandung [{kode_soal, mata_pelajaran, kelas, status}, ...]
+      const soalSelesai = (resCek && resCek.soal_selesai) ? resCek.soal_selesai.map(s => String(s).trim().toUpperCase()) : [];
+
+      container.innerHTML = "";
+      const kelasSiswaLogin = String(akunSiswa.kelas || "").trim().toLowerCase();
+
+      semuaSoalObj.forEach(item => {
+        const kodeClean = String(item.kode_soal || item).trim().toUpperCase();
+        const statusUjian = String(item.status || "Aktif").trim().toLowerCase();
+        const isSelesai = soalSelesai.includes(kodeClean);
+
+        // LOGIKA FILTER KELAS:
+        // Cek apakah string kelas di pengaturan mengandung kelas siswa (misal: "IX-A, IX-B" cocok dengan "IX-A")
+        // Atau jika kelas di pengaturan dikosongkan/diisi "semua", maka diizinkan untuk semua kelas.
+        const targetKelasRaw = String(item.kelas || "").trim().toLowerCase();
+        let cocokKelas = false;
+
+        if (targetKelasRaw === "" || targetKelasRaw === "semua" || targetKelasRaw === "-") {
+          cocokKelas = true;
+        } else {
+          const arrKelasTarget = targetKelasRaw.split(",").map(k => k.trim());
+          cocokKelas = arrKelasTarget.some(k => k === kelasSiswaLogin || kelasSiswaLogin.includes(k) || k.includes(kelasSiswaLogin));
+        }
+
+        // Tampilkan hanya ujian yang statusnya 'aktif', cocok kelasnya, dan belum dikerjakan
+        if (statusUjian === "aktif" && cocokKelas && !isSelesai) {
+          const mapelText = item.mata_pelajaran ? `Mapel: <strong>${item.mata_pelajaran}</strong>` : '';
+          const cardHtml = `
+            <div class="col-md-6 col-lg-4">
+              <div class="card card-custom card-ujian-aktif h-100 bg-white p-3 d-flex flex-column justify-content-between">
+                <div>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary-subtle text-primary badge-status">Ujian Berlangsung</span>
+                    <small class="text-muted"><i class="fa-solid fa-key me-1"></i>${kodeClean}</small>
+                  </div>
+                  <h5 class="fw-bold mb-1 text-dark">Kode Soal: ${kodeClean}</h5>
+                  <p class="text-muted small mb-3">${mapelText ? mapelText + '<br>' : ''}Peruntukan: <span class="badge bg-light text-dark border">${item.kelas || 'Semua Kelas'}</span></p>
+                </div>
+                <button class="btn btn-primary w-100 fw-bold rounded-pill" onclick="langsungMulaiUjian('${kodeClean}')">
+                  <i class="fa-solid fa-pen-to-square me-2"></i> Kerjakan Ujian
+                </button>
+              </div>
+            </div>
+          `;
+          container.innerHTML += cardHtml;
+        }
+      });
+
+      if (container.innerHTML === "") {
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="card card-custom p-4 text-center text-muted">
+              <i class="fa-solid fa-circle-check fa-3x mb-3 text-success"></i>
+              <h6>Tidak ada ujian aktif yang ditujukan untuk kelas Anda (${akunSiswa.kelas}).</h6>
+            </div>
+          </div>
+        `;
+      }
+
+    } catch (err) {
+      container.innerHTML = `<div class="col-12"><div class="alert alert-danger">Gagal memuat ujian: ${err.message}</div></div>`;
+    }
+  }
+
+  // 6. DIRECT REDIRECT KE UJIAN.HTML
+  function langsungMulaiUjian(kodeSoal) {
+    const sesiAwal = {
+      dataPeserta: {
+        kode: kodeSoal,
+        noPeserta: akunSiswa.nis,
+        nama: akunSiswa.nama,
+        kelas: akunSiswa.kelas
+      },
+      listSoal: [],
+      jawabanSiswa: {},
+      indexSoalAktif: 0,
+      waktuMulai: Date.now()
+    };
+
+    localStorage.setItem("sesi_ujian_aktif", JSON.stringify(sesiAwal));
+    window.location.href = "ujian.html";
+  }
+
+  // 7. MUAT RIWAYAT UJIAN & SKOR TOTAL (PG + ESSAI)
+  async function muatRiwayatUjian() {
+    const container = document.getElementById("containerRiwayatUjian");
+    container.innerHTML = `
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted small">Memuat riwayat & nilai...</p>
+      </div>
+    `;
+
+    const targetUrl = getApiUrl();
+    try {
+      const resCekRaw = await fetch(targetUrl, {
+        method: "POST",
+        redirect: "follow",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "cekSoalSiswa", no_peserta: akunSiswa.nis })
+      });
+
+      const resCek = await resCekRaw.json();
+      const soalSelesai = (resCek && resCek.soal_selesai) ? resCek.soal_selesai : [];
+
+      if (soalSelesai.length === 0) {
+        container.innerHTML = `
+          <div class="col-12">
+            <div class="card card-custom p-4 text-center text-muted">
+              <i class="fa-solid fa-clock-rotate-left fa-3x mb-3"></i>
+              <h6>Belum Ada Riwayat Ujian</h6>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = "";
+
+      for (const kode of soalSelesai) {
+        const kodeClean = String(kode).trim().toUpperCase();
+
+        const resHasilRaw = await fetch(targetUrl, {
+          method: "POST",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "gethasilujian", kode_soal: kodeClean })
+        });
+
+        const resHasil = await resHasilRaw.json();
+        let skorPG = 0;
+        let nilaiEssai = 0;
+        let totalSkor = "Tersimpan";
+        let detailJawabanJson = "{}";
+        let detailNilaiEssaiJson = "{}";
+
+        if (resHasil.status === "success" && Array.isArray(resHasil.data)) {
+          const rowSaya = resHasil.data.find(item => String(item.no_peserta || item.noPeserta).trim().toLowerCase() === String(akunSiswa.nis).trim().toLowerCase());
+          if (rowSaya) {
+            skorPG = parseFloat(rowSaya.skor_pg || 0);
+            nilaiEssai = parseFloat(rowSaya.nilai_essai || 0);
+            totalSkor = skorPG + nilaiEssai;
+            detailJawabanJson = rowSaya.detail_jawaban || "{}";
+            detailNilaiEssaiJson = rowSaya.detail_nilai_essai || "{}";
+          }
+        }
+
+        const cardHtml = `
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-custom card-ujian-selesai h-100 bg-white p-3 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge bg-success-subtle text-success badge-status"><i class="fa-solid fa-check me-1"></i>Selesai</span>
+                  <small class="text-muted"><i class="fa-solid fa-key me-1"></i>${kodeClean}</small>
+                </div>
+                <h5 class="fw-bold mb-1 text-dark">Kode: ${kodeClean}</h5>
+                
+                <div class="my-3 p-3 bg-light rounded border text-center">
+                  <small class="text-muted fw-semibold d-block">TOTAL SKOR / NILAI</small>
+                  <h2 class="fw-bold text-success mb-1">${totalSkor}</h2>
+                  <small class="text-muted" style="font-size: 0.75rem;">(PG: ${skorPG} | Essai: ${nilaiEssai})</small>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-primary w-100 fw-bold rounded-pill" 
+                onclick="bukaDetailJawaban('${kodeClean}', '${encodeURIComponent(detailJawabanJson)}', '${encodeURIComponent(detailNilaiEssaiJson)}')">
+                <i class="fa-solid fa-eye me-1"></i> Lihat Data Jawaban
+              </button>
+            </div>
+          </div>
+        `;
+        container.innerHTML += cardHtml;
+      }
+
+    } catch (err) {
+      container.innerHTML = `<div class="col-12"><div class="alert alert-danger">Gagal memuat riwayat: ${err.message}</div></div>`;
+    }
+  }
+
+ // 8. MODAL DETAIL JAWABAN SISWA (PG + ESSAI)
+  function bukaDetailJawaban(kodeSoal, encodedJawaban, encodedNilaiEssai) {
+  const modalBody = document.getElementById("modalBodyDetailJawaban");
+  document.getElementById("modalTitleDetail").innerText = `Lembar Jawaban - Kode: ${kodeSoal}`;
+
+  modalBody.innerHTML = `
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted small">Memuat bank soal dan lembar jawaban...</p>
+    </div>
+  `;
+
+  const myModal = new bootstrap.Modal(document.getElementById("modalDetailJawaban"));
+  myModal.show();
+
+  let jawabanMap = {};
+  try {
+    jawabanMap = JSON.parse(decodeURIComponent(encodedJawaban));
+  } catch (e) {
+    jawabanMap = {};
+  }
+
+  let detailNilaiEssai = {};
+  try {
+    detailNilaiEssai = JSON.parse(decodeURIComponent(encodedNilaiEssai || "{}"));
+  } catch (e) {
+    detailNilaiEssai = {};
+  }
+
+  // 1. OPSI PERTAMA: Jika dijalankan di dalam Web App Google Apps Script
+  if (typeof google !== 'undefined' && google.script && google.script.run) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        renderDetailJawaban(result, modalBody, jawabanMap, detailNilaiEssai);
+      })
+      .withFailureHandler(function(err) {
+        modalBody.innerHTML = `<div class="alert alert-danger">Gagal memuat lembar jawaban: ${err.message}</div>`;
+      })
+      .getSoalSiswa(kodeSoal); // Sesuaikan nama fungsi di Code.gs
+  } 
+  // 2. OPSI KEDUA: Jika siswa.html di-host terpisah (misal: GitHub Pages) menggunakan fetch API
+  else if (typeof getApiUrl === 'function') {
+    const targetUrl = getApiUrl();
+    fetch(targetUrl, {
+      method: "POST",
+      redirect: "follow",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "getsoalsiswa", kode: kodeSoal })
+    })
+    .then(res => res.json())
+    .then(result => {
+      renderDetailJawaban(result, modalBody, jawabanMap, detailNilaiEssai);
+    })
+    .catch(err => {
+      modalBody.innerHTML = `<div class="alert alert-danger">Gagal memuat lembar jawaban: ${err.message}</div>`;
+    });
+  } 
+  // 3. OPSI PENANGANAN ERROR: Jika kedua metode tidak tersedia
+  else {
+    modalBody.innerHTML = `
+      <div class="alert alert-danger">
+        <strong>Error Lingkungan:</strong> Objek <code>google.script.run</code> tidak ditemukan. 
+        Pastikan halaman ini dibuka dari Web App Google Apps Script atau URL API telah dikonfigurasi.
+      </div>`;
+  }
+}
+
+// Fungsi Render UI Lembar Jawaban Lengkap
+function renderDetailJawaban(result, modalBody, jawabanMap, detailNilaiEssai) {
+  const listSoal = Array.isArray(result) ? result : (result && Array.isArray(result.soal) ? result.soal : null);
+
+  if (!listSoal || listSoal.length === 0) {
+    modalBody.innerHTML = `<div class="alert alert-warning">Soal untuk kode ini tidak dapat dimuat.</div>`;
+    return;
+  }
+
+  // Hitung Total Skor
+  let totalSkorPG = 0;
+  let totalSkorEssai = 0;
+
+  listSoal.forEach((soal, idx) => {
+    const noKey = idx + 1;
+    const noSoal = soal.no_soal || noKey;
+    const tipe = String(soal.tipe || "PG").trim().toUpperCase();
+    const isPG = tipe === "PG" || tipe === "PILGAN";
+    const kunciJawaban = String(soal.kunci || soal.kunci_jawaban || "").trim().toUpperCase();
+    const bobotSoal = parseFloat(soal.bobot) || 0;
+
+    const jawabanSiswa = String(
+      jawabanMap[noKey] ?? jawabanMap[String(noKey)] ?? jawabanMap[noSoal] ?? jawabanMap[String(noSoal)] ?? ""
+    ).trim().toUpperCase();
+
+    if (isPG) {
+      if (jawabanSiswa !== "" && jawabanSiswa === kunciJawaban) {
+        totalSkorPG += bobotSoal;
+      }
+    } else {
+      const nilaiSoalEssai = parseFloat(detailNilaiEssai[noKey] ?? detailNilaiEssai[String(noKey)] ?? detailNilaiEssai[noSoal] ?? detailNilaiEssai[String(noSoal)] ?? 0);
+      totalSkorEssai += nilaiSoalEssai;
+    }
+  });
+
+  // Ambil Info Akun Siswa dari Sesi
+  let namaSiswa = "Siswa";
+  let nisSiswa = "-";
+  try {
+    const sessionData = JSON.parse(localStorage.getItem("akun_siswa_login") || "{}");
+    if (sessionData.nama) namaSiswa = sessionData.nama;
+    if (sessionData.nis) nisSiswa = sessionData.nis;
+  } catch(e){}
+
+  // Kop Header Laporan Cetak
+  let htmlContent = `
+    <div class="p-3 mb-4 bg-white rounded border border-2">
+      <div class="row align-items-center">
+        <div class="col-8">
+          <h5 class="fw-bold mb-1 text-primary">LEMBAR HASIL UJIAN SISWA</h5>
+          <div class="small text-muted"><strong>Nama:</strong> ${namaSiswa} | <strong>NIS/No:</strong> ${nisSiswa}</div>
+          <div class="small text-muted"><strong>Tanggal Cetak:</strong> ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+        </div>
+        <div class="col-4 text-end">
+          <div class="p-2 bg-light rounded border text-center">
+            <span class="d-block text-muted small fw-bold">TOTAL SKOR</span>
+            <span class="fs-4 fw-bold text-success">${totalSkorPG + totalSkorEssai}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Render Per-Soal
+  listSoal.forEach((soal, idx) => {
+    const noKey = idx + 1;
+    const noSoal = soal.no_soal || noKey;
+    const tipe = String(soal.tipe || "PG").trim().toUpperCase();
+    const isPG = tipe === "PG" || tipe === "PILGAN";
+
+    const kunciJawaban = String(soal.kunci || soal.kunci_jawaban || "").trim().toUpperCase();
+    const bobotSoal = parseFloat(soal.bobot) || 0;
+
+    const jawabanSiswa = String(
+      jawabanMap[noKey] ?? jawabanMap[String(noKey)] ?? jawabanMap[noSoal] ?? jawabanMap[String(noSoal)] ?? ""
+    ).trim().toUpperCase();
+
+    let detailBadgeHtml = "";
+    let badgeStatusSoal = "";
+
+    if (isPG) {
+      const isCorrect = (jawabanSiswa !== "" && jawabanSiswa === kunciJawaban);
+      const isAnswered = (jawabanSiswa !== "");
+
+      if (!isAnswered) {
+        badgeStatusSoal = `<span class="badge bg-secondary"><i class="fa-solid fa-minus me-1"></i>Tidak Dijawab (0/${bobotSoal})</span>`;
+      } else if (isCorrect) {
+        badgeStatusSoal = `<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>BENAR (+${bobotSoal})</span>`;
+      } else {
+        badgeStatusSoal = `<span class="badge bg-danger"><i class="fa-solid fa-xmark me-1"></i>SALAH (0/${bobotSoal})</span>`;
+      }
+
+      const opsiKeys = ['A', 'B', 'C', 'D', 'E'];
+      let htmlOpsi = "";
+
+      opsiKeys.forEach((key, index) => {
+        const k = key.toLowerCase();
+        const num = index + 1;
+
+        let isiOpsi = 
+          soal[`op${key}`] ?? soal[`opsi_${k}`] ?? soal[`opsi${k}`] ?? 
+          soal[`pilihan_${k}`] ?? soal[`pilihan${k}`] ?? soal[`pil_${k}`] ?? 
+          soal[`pil${k}`] ?? soal[k] ?? soal[`opsi${num}`] ?? 
+          soal[`opsi_${num}`] ?? 
+          (soal.opsi && (soal.opsi[key] || soal.opsi[k] || soal.opsi[index])) ?? 
+          (soal.pilihan && (soal.pilihan[key] || soal.pilihan[k] || soal.pilihan[index])) ?? 
+          null;
+
+        if (isiOpsi !== null && isiOpsi !== undefined && String(isiOpsi).trim() !== "") {
+          const isSelected = (jawabanSiswa === key);
+          const isKunci = (kunciJawaban === key);
+
+          let bgClass = "bg-white border-light-subtle text-dark";
+          let badgeClass = "bg-secondary-subtle text-dark border";
+          let iconHtml = "";
+
+          if (isSelected && isCorrect) {
+            bgClass = "bg-success-subtle border-success text-success fw-bold";
+            badgeClass = "bg-success text-white";
+            iconHtml = '<i class="fa-solid fa-circle-check text-success ms-2"></i>';
+          } else if (isSelected && !isCorrect) {
+            bgClass = "bg-danger-subtle border-danger text-danger fw-bold";
+            badgeClass = "bg-danger text-white";
+            iconHtml = '<i class="fa-solid fa-circle-xmark text-danger ms-2"></i> (Jawaban Anda)';
+          } else if (isKunci && !isCorrect) {
+            bgClass = "bg-success-subtle border-success text-success fw-semibold";
+            badgeClass = "bg-success text-white";
+            iconHtml = '<i class="fa-solid fa-check text-success ms-2"></i> (Kunci Jawaban)';
+          }
+
+          htmlOpsi += `
+            <div class="p-2 mb-1 rounded border ${bgClass} d-flex align-items-center">
+              <span class="badge ${badgeClass} me-2" style="width: 28px; text-align: center;">${key}</span>
+              <span class="flex-grow-1">${isiOpsi}</span>
+              ${iconHtml}
+            </div>
+          `;
+        }
+      });
+
+      detailBadgeHtml = `
+        <div class="p-3 bg-white rounded border">
+          <div class="mb-2">
+            <strong class="text-secondary small d-block mb-2">PILIHAN JAWABAN:</strong>
+            ${htmlOpsi || `
+              <div class="alert alert-light border text-muted small mb-0">
+                <i class="fa-solid fa-info-circle me-1"></i> Teks pilihan tidak disertakan. 
+              </div>
+            `}
+          </div>
+          <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between">
+            <span class="small text-muted">Jawaban Siswa: <strong>${jawabanSiswa || 'Tidak Dijawab'}</strong></span>
+            <span class="small text-muted">Kunci Jawaban: <strong class="text-success">${kunciJawaban || '-'}</strong></span>
+          </div>
+        </div>
+      `;
+    } else {
+      const nilaiSoalEssai = detailNilaiEssai[noKey] ?? detailNilaiEssai[String(noKey)] ?? detailNilaiEssai[noSoal] ?? detailNilaiEssai[String(noSoal)] ?? 0;
+      
+      badgeStatusSoal = `<span class="badge bg-info text-dark"><i class="fa-solid fa-pen-to-square me-1"></i>Skor Essai: ${nilaiSoalEssai} / ${bobotSoal || 10}</span>`;
+
+      detailBadgeHtml = `
+        <div class="p-3 bg-white rounded border">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="text-secondary small">JAWABAN ESSAI SISWA:</strong>
+            <span class="badge bg-primary fs-6 px-3 py-1">Skor Diperoleh: ${nilaiSoalEssai}</span>
+          </div>
+          <div class="p-2 rounded bg-light border text-dark" style="white-space: pre-line;">${jawabanSiswa || '<em class="text-muted">Tidak ada jawaban yang diisi</em>'}</div>
+        </div>
+      `;
+    }
+
+    htmlContent += `
+      <div class="soal-review-box mb-3 p-3 bg-light rounded border">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <span class="fw-bold text-primary me-2">Soal No. ${noKey}</span>
+            <span class="badge bg-outline-secondary border text-secondary">${tipe}</span>
+          </div>
+          <div>${badgeStatusSoal}</div>
+        </div>
+        <div class="mb-3 fw-semibold text-dark">${soal.pertanyaan || soal.soal || '-'}</div>
+        ${detailBadgeHtml}
+      </div>
+    `;
+  });
+
+  modalBody.innerHTML = htmlContent;
+}
+
+// Fungsi untuk memicu dialog Cetak / Simpan PDF
+function cetakLembarJawaban() {
+  // Buka jendela cetak browser (pengguna dapat memilih 'Save as PDF' / 'Simpan sebagai PDF')
+  window.print();
+}
+
+</script>
+
+</body>
+</html>
